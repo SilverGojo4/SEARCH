@@ -1,0 +1,30 @@
+# Pipeline inputs (what data this pipeline operates on)
+inputs:
+  # Example input file used by this stage.
+  input_file: data/example_stage/example_input.txt
+
+# Algorithm / tool parameters (affect scientific results)
+parameters:
+  # Example numeric threshold.
+  # Replace with real parameters such as evalue, coverage cutoff,
+  # conservation threshold, score threshold, etc.
+  threshold: 0.8
+
+  # Example batch size.
+  batch_size: 50
+
+  # Example number of worker threads.
+  num_threads: 8
+
+# Pipeline outputs (where artifacts will be written)
+outputs:
+  # Example output file path.
+  output_file: results/example_stage/example_output.tsv
+
+# Execution behavior (does not affect scientific results)
+execution:
+  # If true, remove existing outputs before running.
+  overwrite: false
+
+  # If true, skip files that already exist when possible.
+  resume: true

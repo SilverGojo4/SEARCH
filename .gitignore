@@ -1,0 +1,122 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+.installed.cfg
+*.egg
+
+# =========================
+# Virtual environments
+# =========================
+.env
+.venv/
+venv/
+ENV/
+env/
+conda-meta/
+
+# =========================
+# Testing / linting / typing cache
+# =========================
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Logs and runtime outputs
+# =========================
+*.log
+logs/*
+!logs/.gitkeep
+tmp/
+temp/
+*.tmp
+*.temp
+
+# =========================
+# Data artifacts
+# Keep examples under version control.
+# =========================
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/tokenized/*
+!data/tokenized/.gitkeep
+
+# External data can be large. Keep folder, ignore contents.
+data/external/*
+!data/external/.gitkeep
+
+# =========================
+# Experiment and result artifacts
+# =========================
+experiments/*
+!experiments/.gitkeep
+results/*
+!results/.gitkeep
+!results/figures/
+!results/tables/
+!results/reports/
+results/figures/*
+!results/figures/.gitkeep
+results/tables/*
+!results/tables/.gitkeep
+results/reports/*
+!results/reports/.gitkeep
+
+# =========================
+# Models and checkpoints
+# =========================
+models/pretrained/*
+!models/pretrained/.gitkeep
+models/checkpoints/*
+!models/checkpoints/.gitkeep
+models/exported/*
+!models/exported/.gitkeep
+
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+
+# =========================
+# OS / editor
+# =========================
+.DS_Store
+*~
+*.swp
+.vscode/
+.idea/
+
+# =========================
+# Project-specific temporary files
+# =========================
+backup.py
+tmp.py
