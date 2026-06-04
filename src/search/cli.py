@@ -49,6 +49,9 @@ PIPELINES: Dict[str, str] = {
         "search.pipelines.cdsearch_extract:run_cdsearch_extract_pipeline"
     ),
     "smp_parse": "search.pipelines.smp_parse:run_smp_parse_pipeline",
+    "pssm_reconstruct": (
+        "search.pipelines.pssm_reconstruct:run_pssm_reconstruct_pipeline"
+    ),
 }
 
 
