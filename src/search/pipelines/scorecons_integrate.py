@@ -1,13 +1,13 @@
 """
-PSSM reconstruction pipeline orchestration module.
+Scorecons integration pipeline orchestration module.
 
 This module validates configuration sections, checks required input
 resources, prepares output directories, and dispatches the actual
-full-length PSSM reconstruction logic.
+Scorecons conservation integration logic.
 
-The actual reconstruction logic is implemented in:
+The actual Scorecons parsing and integration logic is implemented in:
 
-    search.processing.pssm_reconstruct
+    search.processing.scorecons_integrate
 """
 
 from __future__ import annotations
@@ -23,10 +23,10 @@ import pandas as pd
 from search.exceptions import PipelineError
 from search.utils.fs_utils import remove_directory_tree
 
-PIPELINE_NAME = "pssm_reconstruct"
+PIPELINE_NAME = "scorecons_integrate"
 
 
-def run_pssm_reconstruct_pipeline(
+def run_scorecons_integrate_pipeline(
     *,
     inputs: Dict[str, Any],
     parameters: Dict[str, Any],
@@ -34,12 +34,12 @@ def run_pssm_reconstruct_pipeline(
     execution: Dict[str, Any],
 ) -> None:
     """
-    Run the full-length PSSM reconstruction pipeline.
+    Run the Scorecons conservation integration pipeline.
 
     This function is the pipeline-level entry point called by:
 
-        search run --pipeline pssm_reconstruct \
-          --config configs/stages/pssm_reconstruct.yaml
+        search run --pipeline scorecons_integrate \\
+          --config configs/stages/scorecons_integrate.yaml
 
     Parameters
     ----------
@@ -49,7 +49,8 @@ def run_pssm_reconstruct_pipeline(
         Expected keys:
         - query_fasta
         - cdsearch_table
-        - matrix_dir
+        - reconstruct_dir
+        - scorecons_dir
 
     parameters : dict
         Tool parameters that affect scientific results.
@@ -61,7 +62,7 @@ def run_pssm_reconstruct_pipeline(
         Output locations.
 
         Expected keys:
-        - reconstruct_output_dir
+        - integrated_output_dir
 
     execution : dict
         Execution behavior.
@@ -74,33 +75,34 @@ def run_pssm_reconstruct_pipeline(
     -------
     None
     """
-    config = _normalize_pssm_reconstruct_config(
+    config = _normalize_scorecons_integrate_config(
         inputs=inputs,
         parameters=parameters,
         outputs=outputs,
         execution=execution,
     )
 
-    _validate_pssm_reconstruct_resources(config)
-    _prepare_pssm_reconstruct_output_dir(config)
-    _print_pssm_reconstruct_configuration(config)
+    _validate_scorecons_integrate_resources(config)
+    _prepare_scorecons_integrate_output_dir(config)
+    _print_scorecons_integrate_configuration(config)
 
     # Import here to keep CLI startup lightweight.
-    from search.processing.pssm_reconstruct import (  # pylint: disable=import-outside-toplevel
-        run_pssm_reconstruct,
+    from search.processing.scorecons_integrate import (  # pylint: disable=import-outside-toplevel
+        run_scorecons_integrate,
     )
 
-    run_pssm_reconstruct(
+    run_scorecons_integrate(
         query_fasta=config["query_fasta"],
         cdsearch_table=config["cdsearch_table"],
-        matrix_dir=config["matrix_dir"],
-        output_dir=config["reconstruct_output_dir"],
+        reconstruct_dir=config["reconstruct_dir"],
+        scorecons_dir=config["scorecons_dir"],
+        output_dir=config["integrated_output_dir"],
         aa_order=config["aa_order"],
         resume=config["resume"],
     )
 
 
-def _normalize_pssm_reconstruct_config(
+def _normalize_scorecons_integrate_config(
     *,
     inputs: Dict[str, Any],
     parameters: Dict[str, Any],
@@ -108,12 +110,17 @@ def _normalize_pssm_reconstruct_config(
     execution: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
-    Normalize PSSM reconstruction configuration sections into a flat dictionary.
+    Normalize Scorecons integration configuration sections into a flat dictionary.
 
-    Defaults preserve the original Branch B reconstruction behavior.
+    Defaults preserve the original Branch B conservation integration behavior.
     """
-    required_inputs = ["query_fasta", "cdsearch_table", "matrix_dir"]
-    required_outputs = ["reconstruct_output_dir"]
+    required_inputs = [
+        "query_fasta",
+        "cdsearch_table",
+        "reconstruct_dir",
+        "scorecons_dir",
+    ]
+    required_outputs = ["integrated_output_dir"]
 
     for key in required_inputs:
         if key not in inputs or inputs[key] in (None, ""):
@@ -123,7 +130,7 @@ def _normalize_pssm_reconstruct_config(
                 reason=f"Missing required input field: inputs.{key}",
                 action=(
                     "Add the missing field to "
-                    "configs/stages/pssm_reconstruct_smp.yaml under "
+                    "configs/stages/scorecons_integrate.yaml under "
                     "the 'inputs' section."
                 ),
                 context={
@@ -139,7 +146,7 @@ def _normalize_pssm_reconstruct_config(
                 reason=f"Missing required output field: outputs.{key}",
                 action=(
                     "Add the missing field to "
-                    "configs/stages/pssm_reconstruct_smp.yaml under "
+                    "configs/stages/scorecons_integrate_smp.yaml under "
                     "the 'outputs' section."
                 ),
                 context={
@@ -151,25 +158,26 @@ def _normalize_pssm_reconstruct_config(
         # Inputs
         "query_fasta": Path(inputs["query_fasta"]),
         "cdsearch_table": Path(inputs["cdsearch_table"]),
-        "matrix_dir": Path(inputs["matrix_dir"]),
+        "reconstruct_dir": Path(inputs["reconstruct_dir"]),
+        "scorecons_dir": Path(inputs["scorecons_dir"]),
         # Parameters
         # Keep original Branch B AA column order by default.
         "aa_order": parameters.get("aa_order", "GAILVMFWPCSTYNQHKRDE"),
         # Outputs
-        "reconstruct_output_dir": Path(outputs["reconstruct_output_dir"]),
+        "integrated_output_dir": Path(outputs["integrated_output_dir"]),
         # Execution behavior
         "overwrite": bool(execution.get("overwrite", False)),
         "resume": bool(execution.get("resume", True)),
     }
 
-    _validate_pssm_reconstruct_parameters(config)
+    _validate_scorecons_integrate_parameters(config)
 
     return config
 
 
-def _validate_pssm_reconstruct_parameters(config: Dict[str, Any]) -> None:
+def _validate_scorecons_integrate_parameters(config: Dict[str, Any]) -> None:
     """
-    Validate PSSM reconstruction parameter values.
+    Validate Scorecons integration parameter values.
     """
     aa_order = config["aa_order"]
 
@@ -211,13 +219,15 @@ def _validate_pssm_reconstruct_parameters(config: Dict[str, Any]) -> None:
         )
 
 
-def _validate_pssm_reconstruct_resources(config: Dict[str, Any]) -> None:
+def _validate_scorecons_integrate_resources(config: Dict[str, Any]) -> None:
     """
-    Validate FASTA, CD-Search table, matrix directory, and required table columns.
+    Validate FASTA, CD-Search table, reconstruct directory, Scorecons directory,
+    and required CD-Search table columns.
     """
     query_fasta = config["query_fasta"]
     cdsearch_table = config["cdsearch_table"]
-    matrix_dir = config["matrix_dir"]
+    reconstruct_dir = config["reconstruct_dir"]
+    scorecons_dir = config["scorecons_dir"]
 
     if not query_fasta.is_file():
         raise PipelineError(
@@ -226,8 +236,9 @@ def _validate_pssm_reconstruct_resources(config: Dict[str, Any]) -> None:
             reason="Input FASTA file does not exist.",
             action=(
                 "Check inputs.query_fasta in "
-                "configs/stages/pssm_reconstruct_smp.yaml. "
-                "This should be the same FASTA used in the cdsearch stage."
+                "configs/stages/scorecons_integrate_smp.yaml. "
+                "This should be the same FASTA used in the cdsearch and "
+                "pssm_reconstruct stages."
             ),
             context={
                 "query_fasta": str(query_fasta),
@@ -241,24 +252,40 @@ def _validate_pssm_reconstruct_resources(config: Dict[str, Any]) -> None:
             reason="Selected CD-Search domain table does not exist.",
             action=(
                 "Run the cdsearch and cdsearch_extract stages first, or check "
-                "inputs.cdsearch_table in configs/stages/pssm_reconstruct.yaml."
+                "inputs.cdsearch_table in configs/stages/scorecons_integrate.yaml."
             ),
             context={
                 "cdsearch_table": str(cdsearch_table),
             },
         )
 
-    if not matrix_dir.is_dir():
+    if not reconstruct_dir.is_dir():
         raise PipelineError(
             pipeline=PIPELINE_NAME,
             stage="validate_inputs",
-            reason="PSSM matrix directory does not exist.",
+            reason="PSSM reconstruct directory does not exist.",
             action=(
-                "Run the smp_parse stage first, or check inputs.matrix_dir "
-                "in configs/stages/pssm_reconstruct_smp.yaml."
+                "Run the pssm_reconstruct stage first, or check "
+                "inputs.reconstruct_dir in configs/stages/scorecons_integrate_smp.yaml."
             ),
             context={
-                "matrix_dir": str(matrix_dir),
+                "reconstruct_dir": str(reconstruct_dir),
+            },
+        )
+
+    if not scorecons_dir.is_dir():
+        raise PipelineError(
+            pipeline=PIPELINE_NAME,
+            stage="validate_inputs",
+            reason="Scorecons directory does not exist.",
+            action=(
+                "Prepare external Scorecons output files first, or check "
+                "inputs.scorecons_dir in configs/stages/scorecons_integrate_smp.yaml. "
+                "For the current project structure, it is usually: "
+                "data/external/conservation/scorecons."
+            ),
+            context={
+                "scorecons_dir": str(scorecons_dir),
             },
         )
 
@@ -269,17 +296,15 @@ def _validate_cdsearch_table_columns(cdsearch_table: Path) -> None:
     """
     Validate required columns in selected_domain_hits_detailed.tsv.
 
-    The reconstruction stage needs both coordinate columns and aligned
-    sequence columns to project domain-level matrices back to full-length
-    protein coordinates.
+    Scorecons integration uses the CD-Search alignment qseq/qstart mapping
+    and the title-derived domain label to project alignment-level conservation
+    scores back to full-length protein coordinates.
     """
     required_cols = {
         "query_id",
-        "PSSM_ID",
         "qstart",
-        "qend",
         "qseq",
-        "hseq",
+        "title",
     }
 
     try:
@@ -304,8 +329,8 @@ def _validate_cdsearch_table_columns(cdsearch_table: Path) -> None:
             stage="validate_inputs",
             reason="CD-Search table is missing required columns.",
             action=(
-                "Use the cdsearch_top_hits_detailed.tsv generated by the "
-                "cdsearch stage without modifying its required columns."
+                "Use the selected_domain_hits_detailed.tsv generated by the "
+                "cdsearch_extract stage without modifying its required columns."
             ),
             context={
                 "cdsearch_table": str(cdsearch_table),
@@ -316,11 +341,11 @@ def _validate_cdsearch_table_columns(cdsearch_table: Path) -> None:
         )
 
 
-def _prepare_pssm_reconstruct_output_dir(config: Dict[str, Any]) -> None:
+def _prepare_scorecons_integrate_output_dir(config: Dict[str, Any]) -> None:
     """
-    Prepare the reconstruction output directory according to execution settings.
+    Prepare the integrated output directory according to execution settings.
     """
-    output_dir = config["reconstruct_output_dir"]
+    output_dir = config["integrated_output_dir"]
     overwrite = config["overwrite"]
     resume = config["resume"]
 
@@ -337,7 +362,7 @@ def _prepare_pssm_reconstruct_output_dir(config: Dict[str, Any]) -> None:
                 reason="Output directory already exists and is not empty.",
                 action=(
                     "Either set execution.overwrite: true to rebuild from scratch, "
-                    "or set execution.resume: true to skip existing reconstructed TSV files."
+                    "or set execution.resume: true to skip existing integrated TSV files."
                 ),
                 context={
                     "output_dir": str(output_dir),
@@ -352,21 +377,22 @@ def _prepare_pssm_reconstruct_output_dir(config: Dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
 
-def _print_pssm_reconstruct_configuration(config: Dict[str, Any]) -> None:
+def _print_scorecons_integrate_configuration(config: Dict[str, Any]) -> None:
     """
-    Print a simple PSSM reconstruction configuration summary.
+    Print a simple Scorecons integration configuration summary.
     """
     print()
-    print("[PSSM Reconstruction Configuration]")
-    print(f"Input FASTA         : {config['query_fasta']}")
-    print(f"Selected domain tbl : {config['cdsearch_table']}")
-    print(f"PSSM matrix dir     : {config['matrix_dir']}")
-    print(f"Reconstruct out dir : {config['reconstruct_output_dir']}")
+    print("[Scorecons Integration Configuration]")
+    print(f"Input FASTA          : {config['query_fasta']}")
+    print(f"Selected domain tbl  : {config['cdsearch_table']}")
+    print(f"Reconstruct dir      : {config['reconstruct_dir']}")
+    print(f"Scorecons dir        : {config['scorecons_dir']}")
+    print(f"Integrated output dir: {config['integrated_output_dir']}")
     print()
     print("[Parameters]")
-    print(f"aa_order            : {config['aa_order']}")
+    print(f"aa_order             : {config['aa_order']}")
     print()
     print("[Execution]")
-    print(f"overwrite           : {config['overwrite']}")
-    print(f"resume              : {config['resume']}")
+    print(f"overwrite            : {config['overwrite']}")
+    print(f"resume               : {config['resume']}")
     print()

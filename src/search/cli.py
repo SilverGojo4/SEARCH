@@ -52,6 +52,9 @@ PIPELINES: Dict[str, str] = {
     "pssm_reconstruct": (
         "search.pipelines.pssm_reconstruct:run_pssm_reconstruct_pipeline"
     ),
+    "scorecons_integrate": (
+        "search.pipelines.scorecons_integrate:run_scorecons_integrate_pipeline"
+    ),
 }
 
 
