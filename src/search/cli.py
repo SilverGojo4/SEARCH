@@ -2,18 +2,32 @@
 """
 SEARCH command-line interface.
 
-This module provides the initial CLI scaffold for the SEARCH project.
+This module provides the command-line interface for running SEARCH
+pipeline stages.
 
-The full pipeline registry will be added together with the actual
-pipeline implementations in a later feature commit.
+The CLI supports:
+
+- Listing registered pipelines
+- Validating YAML configuration files
+- Running registered pipeline stages
+
+Pipeline implementations are registered through the PIPELINES registry.
+Each registry entry should use the format:
+
+    "module.path:function_name"
+
+Example:
+
+    "search.pipelines.cdsearch:run_cdsearch_pipeline"
 """
 
 from __future__ import annotations
 
 # Standard Library Imports
 import argparse
+import importlib
 from pathlib import Path
-from typing import Dict
+from typing import Any, Callable, Dict
 
 # App Imports
 from search.exceptions import PipelineError
@@ -21,14 +35,20 @@ from search.utils.config_utils import load_yaml
 
 # Pipeline registry
 #
-# The registry is intentionally empty in the initial project scaffold.
-# Real pipeline entries should be added together with their implementation
-# modules, for example:
+# Each registered pipeline maps a user-facing pipeline identifier to
+# a callable entry point.
 #
-# PIPELINES = {
-#     "cdsearch": "search.pipelines.cdsearch:run_cdsearch_pipeline",
-# }
-PIPELINES: Dict[str, str] = {}
+# Format:
+#   "module.path:function_name"
+#
+# Example:
+#   "search.pipelines.cdsearch:run_cdsearch_pipeline"
+PIPELINES: Dict[str, str] = {
+    "cdsearch": "search.pipelines.cdsearch:run_cdsearch_pipeline",
+    "cdsearch_extract": (
+        "search.pipelines.cdsearch_extract:run_cdsearch_extract_pipeline"
+    ),
+}
 
 
 def main() -> None:
@@ -175,10 +195,6 @@ def _run_pipeline(
 ) -> None:
     """
     Run a registered pipeline.
-
-    In the initial scaffold, this function only checks whether the
-    requested pipeline has been registered. Actual pipeline dispatching
-    should be added together with real pipeline implementations.
     """
     if pipeline_name not in PIPELINES:
         _print_pipeline_error(
@@ -187,9 +203,8 @@ def _run_pipeline(
                 stage="resolve_pipeline",
                 reason="Pipeline is not registered.",
                 action=(
-                    "This initial scaffold does not include real pipeline "
-                    "implementations yet. Add the pipeline module under "
-                    "'src/search/pipelines/' and register it in 'PIPELINES'."
+                    "Run 'search list' to see available pipelines, or register "
+                    "the pipeline in PIPELINES inside src/search/cli.py."
                 ),
                 context={
                     "requested_pipeline": pipeline_name,
@@ -200,21 +215,132 @@ def _run_pipeline(
         )
         return
 
-    # Real dispatch logic will be added in the feature commit.
-    _print_pipeline_error(
-        PipelineError(
+    try:
+        config = load_yaml(config_path)
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        _print_pipeline_error(
+            PipelineError(
+                pipeline=pipeline_name,
+                stage="load_config",
+                reason="Failed to load YAML configuration file.",
+                action="Check whether the config path exists and the YAML syntax is valid.",
+                context={
+                    "config_path": str(config_path),
+                    "error": str(exc),
+                },
+            )
+        )
+        return
+
+    try:
+        pipeline_func = _load_pipeline_entrypoint(
+            pipeline_name=pipeline_name,
+            entrypoint=PIPELINES[pipeline_name],
+        )
+    except PipelineError as exc:
+        _print_pipeline_error(exc)
+        return
+
+    try:
+        pipeline_func(
+            inputs=config.get("inputs", {}),
+            parameters=config.get("parameters", {}),
+            outputs=config.get("outputs", {}),
+            execution=config.get("execution", {}),
+        )
+    except PipelineError as exc:
+        _print_pipeline_error(exc)
+        return
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        _print_pipeline_error(
+            PipelineError(
+                pipeline=pipeline_name,
+                stage="run_pipeline",
+                reason="Unexpected error occurred while running the pipeline.",
+                action=(
+                    "Inspect the error message below. If this is a code-level "
+                    "bug, rerun with the same config after fixing the pipeline."
+                ),
+                context={
+                    "config_path": str(config_path),
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                },
+            )
+        )
+        return
+
+
+def _load_pipeline_entrypoint(
+    *,
+    pipeline_name: str,
+    entrypoint: str,
+) -> Callable[..., Any]:
+    """
+    Load a pipeline entry point from a registry string.
+
+    The registry string must use the format:
+
+        module.path:function_name
+    """
+    if ":" not in entrypoint:
+        raise PipelineError(
             pipeline=pipeline_name,
-            stage="run_pipeline",
-            reason="Pipeline dispatch is not implemented in the scaffold CLI.",
+            stage="load_pipeline",
+            reason="Invalid pipeline entrypoint format.",
             action=(
-                "Add importlib-based dispatch when the real pipeline "
-                "implementations are committed."
+                "Use the format 'module.path:function_name' in the PIPELINES "
+                "registry."
             ),
             context={
-                "config_path": str(config_path),
+                "entrypoint": entrypoint,
             },
         )
-    )
+
+    module_path, function_name = entrypoint.split(":", maxsplit=1)
+
+    try:
+        module = importlib.import_module(module_path)
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        raise PipelineError(
+            pipeline=pipeline_name,
+            stage="load_pipeline",
+            reason="Failed to import pipeline module.",
+            action="Check whether the pipeline module path is correct.",
+            context={
+                "module_path": module_path,
+                "function_name": function_name,
+                "error": str(exc),
+            },
+        ) from exc
+
+    try:
+        pipeline_func = getattr(module, function_name)
+    except AttributeError as exc:
+        raise PipelineError(
+            pipeline=pipeline_name,
+            stage="load_pipeline",
+            reason="Pipeline function was not found in the module.",
+            action="Check whether the function name in PIPELINES is correct.",
+            context={
+                "module_path": module_path,
+                "function_name": function_name,
+            },
+        ) from exc
+
+    if not callable(pipeline_func):
+        raise PipelineError(
+            pipeline=pipeline_name,
+            stage="load_pipeline",
+            reason="Pipeline entrypoint is not callable.",
+            action="Check that the registered entrypoint points to a function.",
+            context={
+                "module_path": module_path,
+                "function_name": function_name,
+            },
+        )
+
+    return pipeline_func
 
 
 def _print_pipeline_error(exc: PipelineError) -> None:

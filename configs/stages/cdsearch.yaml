@@ -1,0 +1,44 @@
+# Pipeline inputs (what data this pipeline operates on)
+inputs:
+  # Input protein FASTA file for local CD-Search / RPS-BLAST.
+  # This replaces the old CUSTOM_FASTA argument in scripts/cdsearch.sh.
+  query_fasta: data/processed/query.fasta
+
+  # Local CDD RPS-BLAST database basename.
+  # This should point directly to the database basename used by:
+  #   rpsblast -db data/external/cdd/rpsblast/Cdd
+  #
+  # Important:
+  # Do NOT set this to only the folder path.
+  # Use data/external/cdd/rpsblast/Cdd, not data/external/cdd/rpsblast.
+  cdd_rpsblast_db: data/external/cdd/rpsblast/Cdd
+
+# Algorithm / tool parameters (affect scientific results)
+parameters:
+  # Same as the original run_cdsearch.py:
+  #   -evalue 0.001
+  evalue: 0.001
+
+  # Same as the original run_cdsearch.py:
+  #   -outfmt 5
+  # XML output is required because the original parser uses Bio.Blast.NCBIXML.
+  outfmt: 5
+
+  # Same as the original run_cdsearch.py:
+  #   -num_threads 8
+  num_threads: 8
+
+# Pipeline outputs (where artifacts will be written)
+outputs:
+  # This replaces the old:
+  #   OUTPUT_DIR1="$PROJECT_DIR/results/cdsearch"
+  cdsearch_root: results/cdsearch
+
+# Execution behavior (does not affect scientific results)
+execution:
+  # If true, remove the existing cdsearch_root before running.
+  overwrite: false
+
+  # If true, skip per-sequence XML files that already exist.
+  # This preserves the original behavior where existing XML files are skipped.
+  resume: true
