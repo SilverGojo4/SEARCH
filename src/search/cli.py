@@ -48,6 +48,7 @@ PIPELINES: Dict[str, str] = {
     "cdsearch_extract": (
         "search.pipelines.cdsearch_extract:run_cdsearch_extract_pipeline"
     ),
+    "smp_parse": "search.pipelines.smp_parse:run_smp_parse_pipeline",
 }
 
 
