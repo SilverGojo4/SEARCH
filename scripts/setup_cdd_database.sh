@@ -20,6 +20,7 @@ CDD_ARCHIVE="$PROJECT_DIR/data/external/cdd/archive/cdd.tar.gz"
 CDD_PROFILE_DIR="$PROJECT_DIR/data/external/cdd/profiles"
 CDD_RPSBLAST_DIR="$PROJECT_DIR/data/external/cdd/rpsblast"
 CDD_METADATA_DIR="$PROJECT_DIR/data/external/cdd/metadata"
+CDD_METADATA_TABLE="$CDD_METADATA_DIR/cddid.tbl"
 
 CONDA_ENV="search"
 DB_NAME="Cdd"
@@ -36,14 +37,19 @@ if [ ! -f "$CDD_ARCHIVE" ]; then
   echo "  data/external/cdd/archive/cdd.tar.gz"
   echo
   echo "Download source:"
-  echo "  ftp://ftp.ncbi.nlm.nih.gov/pub/mmdb/cdd/cdd.tar.gz"
+  echo "  https://ftp.ncbi.nih.gov/pub/mmdb/cdd/cdd.tar.gz"
   exit 1
 fi
 
-if [ ! -d "$CDD_METADATA_DIR" ]; then
-  echo "⚠️ Metadata directory not found:"
-  echo "  $CDD_METADATA_DIR"
+if [ ! -f "$CDD_METADATA_TABLE" ]; then
+  echo "⚠️ CDD metadata table not found:"
+  echo "  $CDD_METADATA_TABLE"
+  echo
   echo "This is not required for makeprofiledb, but may be needed for downstream annotation."
+  echo "You can prepare it with:"
+  echo "  mkdir -p data/external/cdd/metadata"
+  echo "  wget https://ftp.ncbi.nih.gov/pub/mmdb/cdd/cddid.tbl.gz -O data/external/cdd/metadata/cddid.tbl.gz"
+  echo "  gunzip -k data/external/cdd/metadata/cddid.tbl.gz"
   echo
 fi
 
@@ -64,8 +70,15 @@ else
   echo "  $CDD_PROFILE_DIR"
   echo
 
-  # Do not use -v here because CDD contains many files
-  pv "$CDD_ARCHIVE" | tar -xzf - -C "$CDD_PROFILE_DIR"
+  # Use pv if available to show extraction progress.
+  # Fall back to plain tar if pv is not installed.
+  if command -v pv > /dev/null 2>&1; then
+    pv "$CDD_ARCHIVE" | tar -xzf - -C "$CDD_PROFILE_DIR"
+  else
+    echo "⚠️ pv command not found. Extracting without progress bar."
+    tar -xzf "$CDD_ARCHIVE" -C "$CDD_PROFILE_DIR"
+  fi
+
   echo "✅ Extraction complete."
   echo
 fi

@@ -146,19 +146,20 @@ This step verifies that:
 - YAML loading works
 - the basic project scaffold is functional
 
-## 4. Prepare the CDD archive
+## 4. Prepare the CDD archive and metadata
 
 The local CD-Search workflow depends on the NCBI Conserved Domain Database
-(CDD). The CDD archive is not tracked by Git because it is a large external
-resource.
+(CDD). The CDD archive and metadata files are not tracked by Git because they
+are external resources.
 
-Create the expected archive directory:
+Create the expected CDD directories:
 
 ```bash
 mkdir -p data/external/cdd/archive
+mkdir -p data/external/cdd/metadata
 ```
 
-Download the CDD archive:
+Download the CDD profile archive:
 
 ```bash
 wget https://ftp.ncbi.nih.gov/pub/mmdb/cdd/cdd.tar.gz \
@@ -171,7 +172,28 @@ The archive must be placed exactly at:
 data/external/cdd/archive/cdd.tar.gz
 ```
 
-The setup script expects this exact path.
+Download the CDD ID metadata table:
+
+```bash
+wget https://ftp.ncbi.nih.gov/pub/mmdb/cdd/cddid.tbl.gz \
+  -O data/external/cdd/metadata/cddid.tbl.gz
+```
+
+Decompress the metadata table:
+
+```bash
+gunzip -k data/external/cdd/metadata/cddid.tbl.gz
+```
+
+This will generate:
+
+```text
+data/external/cdd/metadata/cddid.tbl
+```
+
+The `cddid.tbl` file is not required for building the RPS-BLAST database with
+`makeprofiledb`, but it may be used by downstream annotation steps to map CDD
+identifiers to domain metadata.
 
 ## 5. Build the local CDD RPS-BLAST database
 
@@ -185,20 +207,26 @@ bash scripts/setup_cdd_database.sh .
 The script will:
 
 1. Check that `data/external/cdd/archive/cdd.tar.gz` exists
-2. Extract CDD `.smp` profile files into:
+2. Check whether the optional CDD metadata table exists:
+
+   ```text
+   data/external/cdd/metadata/cddid.tbl
+   ```
+
+3. Extract CDD `.smp` profile files into:
 
    ```text
    data/external/cdd/profiles/
    ```
 
-3. Generate a profile list at:
+4. Generate a profile list at:
 
    ```text
    data/external/cdd/rpsblast/Cdd.pn
    ```
 
-4. Build a local RPS-BLAST database with `makeprofiledb`
-5. Save the database files under:
+5. Build a local RPS-BLAST database with `makeprofiledb`
+6. Save the database files under:
 
    ```text
    data/external/cdd/rpsblast/
@@ -221,6 +249,8 @@ Examples of files and directories that should remain untracked:
 
 ```text
 data/external/cdd/archive/cdd.tar.gz
+data/external/cdd/metadata/cddid.tbl.gz
+data/external/cdd/metadata/cddid.tbl
 data/external/cdd/profiles/
 data/external/cdd/rpsblast/
 results/

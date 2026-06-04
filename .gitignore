@@ -73,6 +73,13 @@ data/tokenized/*
 data/external/*
 !data/external/.gitkeep
 
+# CDD external resources
+data/external/cdd/archive/cdd.tar.gz
+data/external/cdd/metadata/cddid.tbl.gz
+data/external/cdd/metadata/cddid.tbl
+data/external/cdd/profiles/
+data/external/cdd/rpsblast/
+
 # =========================
 # Experiment and result artifacts
 # =========================
