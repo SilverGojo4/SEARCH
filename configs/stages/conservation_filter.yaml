@@ -1,0 +1,54 @@
+# Pipeline inputs (what data this pipeline operates on)
+inputs:
+  # Integrated full-length PSSM tables generated after:
+  #   1. scorecons_integrate
+  #   2. consurf_integrate
+  #
+  # Expected files:
+  #   results/pssm/integrated/{query_id}.tsv
+  integrated_dir: results/pssm/integrated
+
+# Algorithm / filtering parameters (affect final masked features)
+parameters:
+  # Scorecons conservation range.
+  #
+  # This range is applied to the column:
+  #   Conservation (<domain_id>)
+  #
+  # Original example:
+  #   CONS_MIN=0.15
+  #   CONS_MAX=1
+  cons_min: 0.15
+  cons_max: 1.0
+
+  # ConSurf evolutionary conservation range.
+  #
+  # This range is applied to the column:
+  #   Evolutionary conservation
+  #
+  # Original example:
+  #   EC_MIN=-1.5
+  #   EC_MAX=1.5
+  ec_min: -1.5
+  ec_max: 1.5
+
+  # Amino-acid column order used by the original Branch B implementation.
+  # Keep this unchanged to preserve matrix compatibility.
+  aa_order: GAILVMFWPCSTYNQHKRDE
+
+# Pipeline outputs (where artifacts will be written)
+outputs:
+  # Filtered / masked full-length PSSM tables.
+  #
+  # Important:
+  # This stage keeps all residue positions.
+  # It only masks PSSM feature columns as NA when conservation criteria fail.
+  filtered_output_dir: results/pssm/filtered
+
+# Execution behavior (does not affect scientific filtering rules)
+execution:
+  # If true, remove the existing filtered_output_dir before running.
+  overwrite: false
+
+  # If true, skip filtered TSV files that already exist.
+  resume: true

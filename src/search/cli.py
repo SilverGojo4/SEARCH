@@ -58,6 +58,9 @@ PIPELINES: Dict[str, str] = {
     "consurf_integrate": (
         "search.pipelines.consurf_integrate:run_consurf_integrate_pipeline"
     ),
+    "conservation_filter": (
+        "search.pipelines.conservation_filter:run_conservation_filter_pipeline"
+    ),
 }
 
 
