@@ -146,7 +146,7 @@ def _normalize_scorecons_integrate_config(
                 reason=f"Missing required output field: outputs.{key}",
                 action=(
                     "Add the missing field to "
-                    "configs/stages/scorecons_integrate_smp.yaml under "
+                    "configs/stages/scorecons_integrate.yaml under "
                     "the 'outputs' section."
                 ),
                 context={
@@ -236,7 +236,7 @@ def _validate_scorecons_integrate_resources(config: Dict[str, Any]) -> None:
             reason="Input FASTA file does not exist.",
             action=(
                 "Check inputs.query_fasta in "
-                "configs/stages/scorecons_integrate_smp.yaml. "
+                "configs/stages/scorecons_integrate.yaml. "
                 "This should be the same FASTA used in the cdsearch and "
                 "pssm_reconstruct stages."
             ),
@@ -266,7 +266,7 @@ def _validate_scorecons_integrate_resources(config: Dict[str, Any]) -> None:
             reason="PSSM reconstruct directory does not exist.",
             action=(
                 "Run the pssm_reconstruct stage first, or check "
-                "inputs.reconstruct_dir in configs/stages/scorecons_integrate_smp.yaml."
+                "inputs.reconstruct_dir in configs/stages/scorecons_integrate.yaml."
             ),
             context={
                 "reconstruct_dir": str(reconstruct_dir),
@@ -280,7 +280,7 @@ def _validate_scorecons_integrate_resources(config: Dict[str, Any]) -> None:
             reason="Scorecons directory does not exist.",
             action=(
                 "Prepare external Scorecons output files first, or check "
-                "inputs.scorecons_dir in configs/stages/scorecons_integrate_smp.yaml. "
+                "inputs.scorecons_dir in configs/stages/scorecons_integrate.yaml. "
                 "For the current project structure, it is usually: "
                 "data/external/conservation/scorecons."
             ),

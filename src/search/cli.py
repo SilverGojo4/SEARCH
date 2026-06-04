@@ -55,6 +55,9 @@ PIPELINES: Dict[str, str] = {
     "scorecons_integrate": (
         "search.pipelines.scorecons_integrate:run_scorecons_integrate_pipeline"
     ),
+    "consurf_integrate": (
+        "search.pipelines.consurf_integrate:run_consurf_integrate_pipeline"
+    ),
 }
 
 
