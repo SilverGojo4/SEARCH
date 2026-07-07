@@ -98,7 +98,7 @@ def reconstruct_full_pssm(
     columns = (
         ["Position", "Residue", "Alignment"]
         + aa_order_list
-        + ["Po", "Hy", "Ch", "|Hy-Ch|", "|Hy-Po|"]
+        + ["Po", "Hy", "Ch", "|Hy-Ch|", "|Po-Ch|"]
     )
 
     out = pd.DataFrame(index=range(1, length + 1), columns=columns)
@@ -113,7 +113,7 @@ def reconstruct_full_pssm(
     orig_pos = int(aln_row["qstart"])
     pssm_row_index = 0
 
-    feature_columns = aa_order_list + ["Po", "Hy", "Ch", "|Hy-Ch|", "|Hy-Po|"]
+    feature_columns = aa_order_list + ["Po", "Hy", "Ch", "|Hy-Ch|", "|Po-Ch|"]
 
     for q_char, h_char in zip(qseq, hseq):
         q_gap = q_char == "-"

@@ -127,7 +127,7 @@ def convert_pssm_to_dataframe(
         GAILVMFWPCSTYNQHKRDE
 
     Before calculating biochemical features, scaled PSSM values are rounded
-    to integer scores. This makes Po, Hy, Ch, |Hy-Ch|, and |Hy-Po| consistent
+    to integer scores. This makes Po, Hy, Ch, |Hy-Ch|, and |Po-Ch| consistent
     with integer-valued PSSM downstream processing.
 
     The biochemical feature calculation preserves the original positive-only rule.
@@ -180,7 +180,7 @@ def convert_pssm_to_dataframe(
     hy_vals = []
     ch_vals = []
     absch_vals = []
-    abshypo_vals = []
+    abspoch_vals = []
 
     for _, row in df.iterrows():
         po = _sum_positive(row, POLAR, aa_order_list)
@@ -191,13 +191,13 @@ def convert_pssm_to_dataframe(
         hy_vals.append(hy)
         ch_vals.append(ch)
         absch_vals.append(abs(hy - ch))
-        abshypo_vals.append(abs(hy - po))
+        abspoch_vals.append(abs(po - ch))
 
     df["Po"] = po_vals
     df["Hy"] = hy_vals
     df["Ch"] = ch_vals
     df["|Hy-Ch|"] = absch_vals
-    df["|Hy-Po|"] = abshypo_vals
+    df["|Po-Ch|"] = abspoch_vals
 
     return df
 

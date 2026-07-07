@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 
 DEFAULT_AA_ORDER = list("GAILVMFWPCSTYNQHKRDE")
-DEFAULT_FEATURE_COLS = ["Po", "Hy", "Ch", "|Hy-Ch|", "|Hy-Po|"]
+DEFAULT_FEATURE_COLS = ["Po", "Hy", "Ch", "|Hy-Ch|", "|Po-Ch|"]
 DEFAULT_PSSM_NUMERIC_COLS = DEFAULT_AA_ORDER + DEFAULT_FEATURE_COLS
 
 
@@ -239,7 +239,7 @@ def run_conservation_filter(
     start_time = time.time()
 
     aa_order_list = list(aa_order)
-    feature_cols = ["Po", "Hy", "Ch", "|Hy-Ch|", "|Hy-Po|"]
+    feature_cols = ["Po", "Hy", "Ch", "|Hy-Ch|", "|Po-Ch|"]
     pssm_numeric_cols = aa_order_list + feature_cols
 
     filtered_output_dir.mkdir(parents=True, exist_ok=True)
