@@ -31,6 +31,7 @@ DEFAULT_PSSM_NUMERIC_COLS = DEFAULT_AA_ORDER + [
     "Hy",
     "Ch",
     "|Hy-Ch|",
+    "|Po-Ch|",
     "|Hy-Po|",
 ]
 
@@ -293,7 +294,14 @@ def run_scorecons_integrate(
     log_path = output_dir / "scorecons_integrate_error.log"
 
     aa_order_list = list(aa_order)
-    numeric_cols = aa_order_list + ["Po", "Hy", "Ch", "|Hy-Ch|", "|Hy-Po|"]
+    numeric_cols = aa_order_list + [
+        "Po",
+        "Hy",
+        "Ch",
+        "|Hy-Ch|",
+        "|Po-Ch|",
+        "|Hy-Po|",
+    ]
 
     print(f"📂 FASTA Path             : {query_fasta}")
     print(f"📄 Selected Domain Table  : {cdsearch_table}")
